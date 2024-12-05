@@ -151,6 +151,32 @@ exports.createClass = [
   },
 ];
 
+exports.getAllTutors = async (req, res, next) => {
+  try {
+    const tutors = await Tutor.find();
+    return res.status(200).json({ tutors });
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+};
+
+exports.getTutorTimeTable = [
+  body("tutor").exists().isMongoId().withMessage("Invalid tutor ID"),
+  async (req, res, next) => {
+    try {
+      const tutor = await Tutor.findById(req.body.tutor).populate("timetable");
+      if (!tutor) {
+        return res.status(404).json({ error: "Tutor not found" });
+      }
+      return res.status(200).json({ tutor });
+    } catch (err) {
+      console.log(err);
+      return next(err);
+    }
+  },
+];
+
 // todo
 exports.deleteTutor = (req, res, next) => {};
 exports.deleteClass = (req, res, next) => {};
