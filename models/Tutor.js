@@ -4,8 +4,8 @@ const Schema = mongoose.Schema;
 
 const TutorSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  firstname: { type: String, minLength: 3, maxLength: 20 },
-  lastname: { type: String, minLength: 3, maxLength: 20 },
+  firstname: { type: String, minLength: 1, maxLength: 20 },
+  lastname: { type: String, minLength: 1, maxLength: 20 },
 });
 
 TutorSchema.virtual("timetable", {

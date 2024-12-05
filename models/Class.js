@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { departments, semesters } = require("../utils/helpers");
 
 const Schema = mongoose.Schema;
 
@@ -7,12 +8,12 @@ const ClassSchema = new Schema({
   batch: { type: String },
   semester: {
     type: String,
-    enum: ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"],
+    enum: semesters,
     required: true,
   },
   department: {
     type: String,
-    enum: ["Computer Science", "Mechanical", "Civil", "Electrical"],
+    enum: departments,
     required: true,
   },
 });

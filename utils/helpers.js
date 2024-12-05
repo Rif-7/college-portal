@@ -1,4 +1,4 @@
-function generateInitialSchedule(refField) {
+export function generateInitialSchedule(refField) {
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday"];
   const schedule = {};
 
@@ -12,3 +12,12 @@ function generateInitialSchedule(refField) {
 
   return schedule;
 }
+
+export const departments = [
+  "Computer Science",
+  "Mechanical",
+  "Civil",
+  "Electrical",
+];
+
+export const semesters = ["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8"];
