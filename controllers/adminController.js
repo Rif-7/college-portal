@@ -202,15 +202,25 @@ exports.updateClassTT = [
   body("period")
     .exists()
     .withMessage("Period number is missing")
-    .isInt({ min: 0, max: 7 }) // 6 if friday
-    .withMessage("Invalid period number"),
+    .custom((value, { req }) => {
+      const maxPeriods = req.body.day === "friday" ? 6 : 7;
+      if (value < 0 || value > maxPeriods) {
+        throw new Error(`Invalid period number for ${req.body.day}`);
+      }
+      return true;
+    }),
   body("subjectCode")
-    .optional()
+    .exists()
+    .withMessage("Subject code is missing")
     .isString()
     .trim()
     .isLength({ min: 1, max: 10 })
     .withMessage("Invalid subject code"),
-  body("tutor").optional().isMongoId().withMessage("invalid Mongo ID"),
+  body("tutor")
+    .exists()
+    .withMessage("Tutor ID is missing")
+    .isMongoId()
+    .withMessage("invalid Mongo ID"),
 
   async (req, res, next) => {
     try {
@@ -220,12 +230,12 @@ exports.updateClassTT = [
         return res.status(400).json({ error: errors.array() });
       }
 
-      const classTT = await ClassTimeTable.find({ class: req.body.class });
+      const classTT = await ClassTimeTable.findOne({ class: req.body.class });
       if (!classTT) {
         return res.status(404).json({ error: "Class time table not found" });
       }
 
-      const tutorTT = await TutorTimeTable.find({ tutor: req.body.tutor });
+      const tutorTT = await TutorTimeTable.findOne({ tutor: req.body.tutor });
       if (!tutorTT) {
         return res.status(404).json({ error: "Tutor not found" });
       }
@@ -233,9 +243,9 @@ exports.updateClassTT = [
       const { day, period } = req.body;
       const currentTutorID = classTT.schedule[day][period].tutor;
 
-      // if the period is already assigned then remove the period
+      // if the period is already assigned then remove the period from the current tutor
       if (currentTutorID) {
-        const currentTutorTT = await TutorTimeTable.find({
+        const currentTutorTT = await TutorTimeTable.findOne({
           tutor: currentTutorID,
         });
         currentTutorID.schedule[day][period] = {
@@ -250,14 +260,79 @@ exports.updateClassTT = [
         subjectCode: req.body.subjectCode,
         tutor: req.body.tutor,
       };
+      await classTT.save();
 
       tutorTT.schedule[day][period] = {
         subjectCode: req.body.subjectCode,
         class: req.body.class,
       };
-
-      await classTT.save();
       await tutorTT.save();
+
+      return res
+        .status(200)
+        .json({ success: "Time table updated successfully" });
+    } catch (err) {
+      console.log(err);
+      return next(err);
+    }
+  },
+];
+
+exports.removeClassTT = [
+  body("class")
+    .exists()
+    .withMessage("Class ID is missing")
+    .isMongoId()
+    .withMessage("Invalid class ID"),
+  body("day")
+    .exists()
+    .withMessage("Day is missing")
+    .isIn(days)
+    .withMessage("Invalid day"),
+  body("period")
+    .exists()
+    .withMessage("Period number is missing")
+    .custom((value, { req }) => {
+      const maxPeriods = req.body.day === "friday" ? 6 : 7;
+      if (value < 0 || value > maxPeriods) {
+        throw new Error(`Invalid period number for ${req.body.day}`);
+      }
+      return true;
+    }),
+  async (req, res, next) => {
+    try {
+      let errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        errors = errors.formatWith((error) => error.msg);
+        return res.status(400).json({ error: errors.array() });
+      }
+
+      const classTT = await ClassTimeTable.findOne({ class: req.body.class });
+      if (!classTT) {
+        return res.status(404).json({ error: "Class time table not found" });
+      }
+
+      const { day, period } = req.body;
+      const currentTutorID = classTT.schedule[day][period].tutor;
+
+      // if the period is already assigned then remove the period from the current tutor
+      if (currentTutorID) {
+        const currentTutorTT = await TutorTimeTable.findOne({
+          tutor: currentTutorID,
+        });
+        currentTutorID.schedule[day][period] = {
+          subjectCode: "",
+          class: null,
+        };
+
+        await currentTutorTT.save();
+      }
+
+      classTT.schedule[day][period] = {
+        subjectCode: "",
+        tutor: null,
+      };
+      await classTT.save();
 
       return res
         .status(200)
