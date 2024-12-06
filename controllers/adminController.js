@@ -7,6 +7,7 @@ const {
   generateInitialSchedule,
   semesters,
   departments,
+  days,
 } = require("../utils/helpers");
 const Class = require("../models/Class");
 const ClassTimeTable = require("../models/ClassTimeTable");
@@ -162,9 +163,19 @@ exports.getAllTutors = async (req, res, next) => {
 };
 
 exports.getTutorTimeTable = [
-  body("tutor").exists().isMongoId().withMessage("Invalid tutor ID"),
+  body("tutor")
+    .exists()
+    .withMessage("Tutor ID not found")
+    .isMongoId()
+    .withMessage("Invalid tutor ID"),
   async (req, res, next) => {
     try {
+      let errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        errors = errors.formatWith((error) => error.msg);
+        return res.status(400).json({ error: errors.array() });
+      }
+
       const tutor = await Tutor.findById(req.body.tutor).populate("timetable");
       if (!tutor) {
         return res.status(404).json({ error: "Tutor not found" });
@@ -177,6 +188,102 @@ exports.getTutorTimeTable = [
   },
 ];
 
+exports.updateClassTT = [
+  body("class")
+    .exists()
+    .withMessage("Class ID is missing")
+    .isMongoId()
+    .withMessage("Invalid class ID"),
+  body("day")
+    .exists()
+    .withMessage("Day is missing")
+    .isIn(days)
+    .withMessage("Invalid day"),
+  body("period")
+    .exists()
+    .withMessage("Period number is missing")
+    .isInt({ min: 0, max: 7 }) // 6 if friday
+    .withMessage("Invalid period number"),
+  body("subjectCode")
+    .optional()
+    .isString()
+    .trim()
+    .isLength({ min: 1, max: 10 })
+    .withMessage("Invalid subject code"),
+  body("tutor").optional().isMongoId().withMessage("invalid Mongo ID"),
+
+  async (req, res, next) => {
+    try {
+      let errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        errors = errors.formatWith((error) => error.msg);
+        return res.status(400).json({ error: errors.array() });
+      }
+
+      const classTT = await ClassTimeTable.find({ class: req.body.class });
+      if (!classTT) {
+        return res.status(404).json({ error: "Class time table not found" });
+      }
+
+      const tutorTT = await TutorTimeTable.find({ tutor: req.body.tutor });
+      if (!tutorTT) {
+        return res.status(404).json({ error: "Tutor not found" });
+      }
+
+      const { day, period } = req.body;
+      const currentTutorID = classTT.schedule[day][period].tutor;
+
+      // if the period is already assigned then remove the period
+      if (currentTutorID) {
+        const currentTutorTT = await TutorTimeTable.find({
+          tutor: currentTutorID,
+        });
+        currentTutorID.schedule[day][period] = {
+          subjectCode: "",
+          class: null,
+        };
+
+        await currentTutorTT.save();
+      }
+
+      classTT.schedule[day][period] = {
+        subjectCode: req.body.subjectCode,
+        tutor: req.body.tutor,
+      };
+
+      tutorTT.schedule[day][period] = {
+        subjectCode: req.body.subjectCode,
+        class: req.body.class,
+      };
+
+      await classTT.save();
+      await tutorTT.save();
+
+      return res
+        .status(200)
+        .json({ success: "Time table updated successfully" });
+    } catch (err) {
+      console.log(err);
+      return next(err);
+    }
+  },
+];
+
 // todo
-exports.deleteTutor = (req, res, next) => {};
+exports.deleteTutor = [
+  body("tutor").exists().isMongoId().withMessage("Invalid tutor ID"),
+  async (req, res, next) => {
+    try {
+      let errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        errors = errors.formatWith((error) => error.msg);
+        return res.status(400).json({ error: errors.array() });
+      }
+    } catch (err) {
+      console.log(err);
+      return next(err);
+    }
+  },
+];
+
 exports.deleteClass = (req, res, next) => {};
