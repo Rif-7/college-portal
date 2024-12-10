@@ -146,6 +146,16 @@ exports.createClass = [
   },
 ];
 
+exports.getAllClasses = async (req, res, next) => {
+  try {
+    const classes = await Class.find().populate("tutor", "firstname lastname");
+    return res.status(200).json({ classes });
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+};
+
 exports.getAllTutors = async (req, res, next) => {
   try {
     const tutors = await Tutor.find();
