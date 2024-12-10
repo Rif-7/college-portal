@@ -8,6 +8,7 @@ const {
   semesters,
   departments,
   days,
+  isValidMongoID,
 } = require("../utils/helpers");
 const Class = require("../models/Class");
 const ClassTimeTable = require("../models/ClassTimeTable");
@@ -166,60 +167,43 @@ exports.getAllClasses = async (req, res, next) => {
   }
 };
 
-exports.getTutorTimeTable = [
-  body("tutor")
-    .exists()
-    .withMessage("Tutor ID is missing")
-    .isMongoId()
-    .withMessage("Invalid tutor ID"),
-  async (req, res, next) => {
-    try {
-      let errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        errors = errors.formatWith((error) => error.msg);
-        return res.status(400).json({ error: errors.array() });
-      }
-
-      const tutor = await Tutor.findById(req.body.tutor).populate("timetable");
-      if (!tutor) {
-        return res.status(404).json({ error: "Tutor not found" });
-      }
-      return res.status(200).json({ tutor });
-    } catch (err) {
-      console.log(err);
-      return next(err);
+exports.getTutorTimeTable = async (req, res, next) => {
+  try {
+    if (!isValidMongoID(req.params.tutorID)) {
+      return res.status(400).json({ error: "Invalid or missing tutor ID" });
     }
-  },
-];
-
-exports.getClassTimeTable = [
-  body("class")
-    .exists()
-    .withMessage("Class ID is missing")
-    .isMongoId()
-    .withMessage("Invalid class ID"),
-  async (req, res, next) => {
-    try {
-      let errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        errors = errors.formatWith((error) => error.msg);
-        return res.status(400).json({ error: errors.array() });
-      }
-
-      const classDoc = await Class.findById(req.body.class).populate(
-        "timetable"
-      );
-      if (!classDoc) {
-        return res.status(404).json({ error: "Class not found" });
-      }
-
-      return res.status(200).json({ class: classDoc });
-    } catch (err) {
-      console.log(err);
-      return next(err);
+    const tutor = await Tutor.findById(req.params.tutorID).populate(
+      "timetable"
+    );
+    if (!tutor) {
+      return res.status(404).json({ error: "Tutor not found" });
     }
-  },
-];
+    return res.status(200).json({ tutor });
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+};
+
+exports.getClassTimeTable = async (req, res, next) => {
+  try {
+    if (isValidMongoID(req.params.classID)) {
+      return res.status(400).json({ error: "Invalid or missing class ID" });
+    }
+
+    const classDoc = await Class.findById(req.params.classID).populate(
+      "timetable"
+    );
+    if (!classDoc) {
+      return res.status(404).json({ error: "Class not found" });
+    }
+
+    return res.status(200).json({ class: classDoc });
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+};
 
 exports.updateClassTT = [
   body("class")

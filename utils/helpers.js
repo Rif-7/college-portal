@@ -1,4 +1,4 @@
-import ClassTimeTable from "../models/ClassTimeTable";
+const mongoose = require("mongoose");
 
 export function generateInitialSchedule(refField) {
   const days = ["monday", "tuesday", "wednesday", "thursday", "friday"];
@@ -13,6 +13,10 @@ export function generateInitialSchedule(refField) {
   });
 
   return schedule;
+}
+
+export function isValidMongoID(id) {
+  return id && mongoose.Types.ObjectId.isValid(id);
 }
 
 export const departments = [
