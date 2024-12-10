@@ -146,16 +146,6 @@ exports.createClass = [
   },
 ];
 
-exports.getAllClasses = async (req, res, next) => {
-  try {
-    const classes = await Class.find().populate("tutor", "firstname lastname");
-    return res.status(200).json({ classes });
-  } catch (err) {
-    console.log(err);
-    return next(err);
-  }
-};
-
 exports.getAllTutors = async (req, res, next) => {
   try {
     const tutors = await Tutor.find();
@@ -166,10 +156,20 @@ exports.getAllTutors = async (req, res, next) => {
   }
 };
 
+exports.getAllClasses = async (req, res, next) => {
+  try {
+    const classes = await Class.find().populate("tutor", "firstname lastname");
+    return res.status(200).json({ classes });
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+};
+
 exports.getTutorTimeTable = [
   body("tutor")
     .exists()
-    .withMessage("Tutor ID not found")
+    .withMessage("Tutor ID is missing")
     .isMongoId()
     .withMessage("Invalid tutor ID"),
   async (req, res, next) => {
@@ -185,6 +185,35 @@ exports.getTutorTimeTable = [
         return res.status(404).json({ error: "Tutor not found" });
       }
       return res.status(200).json({ tutor });
+    } catch (err) {
+      console.log(err);
+      return next(err);
+    }
+  },
+];
+
+exports.getClassTimeTable = [
+  body("class")
+    .exists()
+    .withMessage("Class ID is missing")
+    .isMongoId()
+    .withMessage("Invalid class ID"),
+  async (req, res, next) => {
+    try {
+      let errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        errors = errors.formatWith((error) => error.msg);
+        return res.status(400).json({ error: errors.array() });
+      }
+
+      const classDoc = await Class.findById(req.body.class).populate(
+        "timetable"
+      );
+      if (!classDoc) {
+        return res.status(404).json({ error: "Class not found" });
+      }
+
+      return res.status(200).json({ class: classDoc });
     } catch (err) {
       console.log(err);
       return next(err);
