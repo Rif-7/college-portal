@@ -18,7 +18,7 @@ const ClassSchema = new Schema({
   },
 });
 
-TutorSchema.virtual("timetable", {
+ClassSchema.virtual("timetable", {
   ref: "ClassTimeTable",
   localField: "_id",
   foreignField: "class",

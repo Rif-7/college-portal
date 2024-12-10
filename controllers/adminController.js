@@ -365,5 +365,9 @@ exports.removeClassTT = [
 ];
 
 // TODO's
-exports.deleteTutor = (req, res, next) => {};
-exports.deleteClass = (req, res, next) => {};
+exports.deleteTutor = (req, res, next) => {
+  return res.json({ todo: "todo" });
+};
+exports.deleteClass = (req, res, next) => {
+  return res.json({ todo: "todo" });
+};
