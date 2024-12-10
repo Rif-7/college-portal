@@ -206,11 +206,6 @@ exports.getClassTimeTable = async (req, res, next) => {
 };
 
 exports.updateClassTT = [
-  body("class")
-    .exists()
-    .withMessage("Class ID is missing")
-    .isMongoId()
-    .withMessage("Invalid class ID"),
   body("day")
     .exists()
     .withMessage("Day is missing")
@@ -247,7 +242,13 @@ exports.updateClassTT = [
         return res.status(400).json({ error: errors.array() });
       }
 
-      const classTT = await ClassTimeTable.findOne({ class: req.body.class });
+      if (!isValidMongoID(req.params.classID)) {
+        return res.status(400).json({ error: "Invalid or missing class ID" });
+      }
+
+      const classTT = await ClassTimeTable.findOne({
+        class: req.params.classID,
+      });
       if (!classTT) {
         return res.status(404).json({ error: "Class time table not found" });
       }
@@ -281,7 +282,7 @@ exports.updateClassTT = [
 
       tutorTT.schedule[day][period] = {
         subjectCode: req.body.subjectCode,
-        class: req.body.class,
+        class: req.params.classID,
       };
       await tutorTT.save();
 
@@ -296,11 +297,6 @@ exports.updateClassTT = [
 ];
 
 exports.removeClassTT = [
-  body("class")
-    .exists()
-    .withMessage("Class ID is missing")
-    .isMongoId()
-    .withMessage("Invalid class ID"),
   body("day")
     .exists()
     .withMessage("Day is missing")
@@ -324,7 +320,14 @@ exports.removeClassTT = [
         return res.status(400).json({ error: errors.array() });
       }
 
-      const classTT = await ClassTimeTable.findOne({ class: req.body.class });
+      if (!isValidMongoID(req.params.classID)) {
+        return res.status(400).json({ error: "Invalid or missing class ID" });
+      }
+
+      const classTT = await ClassTimeTable.findOne({
+        class: req.params.classID,
+      });
+
       if (!classTT) {
         return res.status(404).json({ error: "Class time table not found" });
       }
@@ -362,20 +365,5 @@ exports.removeClassTT = [
 ];
 
 // TODO's
-exports.deleteTutor = [
-  body("tutor").exists().isMongoId().withMessage("Invalid tutor ID"),
-  async (req, res, next) => {
-    try {
-      let errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        errors = errors.formatWith((error) => error.msg);
-        return res.status(400).json({ error: errors.array() });
-      }
-    } catch (err) {
-      console.log(err);
-      return next(err);
-    }
-  },
-];
-
+exports.deleteTutor = (req, res, next) => {};
 exports.deleteClass = (req, res, next) => {};
