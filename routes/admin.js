@@ -3,6 +3,8 @@ const router = express.Router();
 const adminController = require("../controllers/adminController");
 const { ensureAdmin } = require("../utils/auth");
 
+router.post("/login", adminController.login);
+
 router.get("/tutor", ensureAdmin, adminController.getAllTutors);
 router.get("/class", ensureAdmin, adminController.getAllClasses);
 
