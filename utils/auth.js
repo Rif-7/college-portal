@@ -47,14 +47,21 @@ exports.ensureAuth = (req, res, next) => {
   })(req, res, next);
 };
 
-exports.adminAuth = (req, res, next) => {
-  try {
-    if (req.body.admin !== process.env.ADMIN_PASS) {
-      return res.status(401).json({ error: "Admin password is incorrect" });
+exports.ensureAdmin = (req, res, next) => {
+  passport.authenticate("jwt", (err, user, info, status) => {
+    if (err) {
+      return next(err);
     }
 
+    if (!user) {
+      return res.status(401).json({ error: "User is not authenticated" });
+    }
+
+    if (user.userType !== "admin") {
+      return res.status(403).json({ error: "Access denied. Admins only" });
+    }
+
+    req.user = user;
     return next();
-  } catch (err) {
-    return next(err);
-  }
+  })(req, res, next);
 };

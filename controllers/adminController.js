@@ -48,12 +48,6 @@ exports.createTutor = [
     .withMessage("Lastname should be between 1-20 characters")
     .isAlpha()
     .withMessage("Lastname contains invalid characters"),
-  body("userType")
-    .isString()
-    .toLowerCase()
-    .withMessage("Invalid format")
-    .isIn(["tutor", "student"])
-    .withMessage("userType must be either 'tutor' or 'student'"),
 
   async (req, res, next) => {
     try {
@@ -67,7 +61,7 @@ exports.createTutor = [
       let user = new User({
         username: req.body.username,
         password: hashedPassword,
-        userType: req.body.userType,
+        userType: "user",
       });
 
       user = await user.save();
@@ -344,7 +338,7 @@ exports.removeClassTT = [
   },
 ];
 
-// todo
+// TODO's
 exports.deleteTutor = [
   body("tutor").exists().isMongoId().withMessage("Invalid tutor ID"),
   async (req, res, next) => {
