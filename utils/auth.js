@@ -3,6 +3,8 @@ const passport = require("passport");
 const passportJWT = require("passport-jwt");
 const path = require("path");
 const User = require("../models/User");
+const Tutor = require("../models/Tutor");
+const Student = require("../models/Student");
 require("dotenv").config({ path: path.resolve(__dirname, "../.env") });
 
 const ExtractJWT = passportJWT.ExtractJwt;
@@ -46,6 +48,32 @@ exports.ensureAuth = (req, res, next) => {
     req.user = user;
     return next();
   })(req, res, next);
+};
+
+exports.ensureTutor = async (req, res, next) => {
+  try {
+    const tutor = await Tutor.find({ user: req.user._id });
+    if (!tutor) {
+      return res.status(403).json({ error: "Access denied. Tutors only" });
+    }
+    req.tutor = tutor;
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+};
+
+exports.ensureStudent = async (req, res, next) => {
+  try {
+    const student = await Student.find({ user: req.user._id });
+    if (!student) {
+      return res.status(403).json({ error: "Access denied. Students only" });
+    }
+    req.student = student;
+    return next();
+  } catch (err) {
+    return next(err);
+  }
 };
 
 exports.ensureAdmin = (req, res, next) => {

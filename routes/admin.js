@@ -17,6 +17,9 @@ router.get("/class/:classID", ensureAdmin, adminController.getClassTimeTable);
 router.delete("/tutor/:tutorID", ensureAdmin, adminController.deleteTutor);
 router.delete("/class/:classID", ensureAdmin, adminController.deleteClass);
 
+router.put("/tutor/:tutorID", ensureAdmin, adminController.updateTutor);
+router.put("/class/:classID", ensureAdmin, adminController.updateClass);
+
 router.put(
   "/class/:classID/timetable",
   ensureAdmin,
