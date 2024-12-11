@@ -26,7 +26,7 @@ exports.login = [
     .custom(async (username, { req }) => {
       const user = await User.findOne({ username });
       if (!user || user.userType !== "admin") {
-        throw new Error("User not found");
+        throw new Error("Incorrect username");
       }
       req.user = user;
     }),

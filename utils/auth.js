@@ -52,7 +52,7 @@ exports.ensureAuth = (req, res, next) => {
 
 exports.ensureTutor = async (req, res, next) => {
   try {
-    const tutor = await Tutor.find({ user: req.user._id });
+    const tutor = await Tutor.findOne({ user: req.user._id });
     if (!tutor) {
       return res.status(403).json({ error: "Access denied. Tutors only" });
     }
@@ -65,7 +65,7 @@ exports.ensureTutor = async (req, res, next) => {
 
 exports.ensureStudent = async (req, res, next) => {
   try {
-    const student = await Student.find({ user: req.user._id });
+    const student = await Student.findOne({ user: req.user._id });
     if (!student) {
       return res.status(403).json({ error: "Access denied. Students only" });
     }
