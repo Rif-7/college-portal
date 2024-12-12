@@ -11,8 +11,8 @@ router.get("/class", ensureAdmin, adminController.getAllClasses);
 router.post("/tutor", ensureAdmin, adminController.createTutor);
 router.post("/class", ensureAdmin, adminController.createClass);
 
-router.get("/tutor/:tutorID", ensureAdmin, adminController.getTutorTimeTable);
-router.get("/class/:classID", ensureAdmin, adminController.getClassTimeTable);
+router.get("/tutor/:tutorID", ensureAdmin, adminController.getTutorDetail);
+router.get("/class/:classID", ensureAdmin, adminController.getClassDetail);
 
 router.delete("/tutor/:tutorID", ensureAdmin, adminController.deleteTutor);
 router.delete("/class/:classID", ensureAdmin, adminController.deleteClass);

@@ -38,4 +38,19 @@ const ClassTimeTableSchema = new Schema({
   },
 });
 
+ClassTimeTableSchema.virtual("populatedSchedule").get(async function () {
+  const populated = await this.populate({
+    path: `
+      schedule.monday.tutor
+      schedule.tuesday.tutor
+      schedule.wednesday.tutor
+      schedule.thursday.tutor
+      schedule.friday.tutor
+    `,
+    select: "firstname lastname",
+  }).execPopulate();
+
+  return populated.schedule;
+});
+
 module.exports = mongoose.model("ClassTimeTable", ClassTimeTableSchema);

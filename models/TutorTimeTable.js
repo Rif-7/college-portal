@@ -38,4 +38,19 @@ const TutorTimeTableSchema = new Schema({
   },
 });
 
+TutorTimeTableSchema.virtual("populatedSchedule").get(async function () {
+  const populated = await this.populate({
+    path: `
+      schedule.monday.class
+      schedule.tuesday.class
+      schedule.wednesday.class
+      schedule.thursday.class
+      schedule.friday.class
+    `,
+    select: "batch semester department",
+  }).execPopulate();
+
+  return populated.schedule;
+});
+
 module.exports = mongoose.model("TutorTimeTable", TutorTimeTableSchema);
