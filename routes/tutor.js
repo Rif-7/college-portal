@@ -4,4 +4,6 @@ const tutorController = require("../controllers/tutorController");
 
 router.post("/login", tutorController.login);
 
+router.get("/", tutorController.getTutorDetail);
+
 module.exports = router;

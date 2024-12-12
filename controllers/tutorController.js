@@ -3,6 +3,8 @@ const User = require("../models/User");
 const Tutor = require("../models/Tutor");
 const { comparePassword } = require("../utils/auth");
 const jwt = require("jsonwebtoken");
+const TutorTimeTable = require("../models/TutorTimeTable");
+const { getTutorSubjects, getTutorClasses } = require("../utils/helpers");
 
 exports.login = [
   body("username")
@@ -54,3 +56,18 @@ exports.login = [
     }
   },
 ];
+
+exports.getTutorDetail = async (req, res, next) => {
+  try {
+    const tutor = req.tutor;
+    const tutorTT = await TutorTimeTable.findOne({ user: req.tutor._id });
+    const timetable = await tutorTT.populatedSchedule;
+    const subjects = getTutorSubjects(timetable);
+    const classes = getTutorClasses(timetable);
+
+    return res.status(200).json({ tutor, timetable, subjects, classes });
+  } catch (err) {
+    console.log(err);
+    return next(err);
+  }
+};
