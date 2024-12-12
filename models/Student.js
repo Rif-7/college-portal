@@ -10,4 +10,4 @@ const StudentSchema = new Schema({
   class: { type: Schema.Types.ObjectId, ref: "Class", required: true },
 });
 
-module.exports = mongoose.Schema("Student", StudentSchema);
+module.exports = mongoose.model("Student", StudentSchema);

@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const Class = require("../models/Class");
 
 const departments = ["Computer Science", "Mechanical", "Civil", "Electrical"];
 
